@@ -11,12 +11,13 @@ var TestLayer = cc.Layer.extend({
         var hello = new cc.LabelTTF("CEILING WIN", "Arial",40);
         hello.x=200;
         hello.y=300;
-        this.addChild(hello);
-        var apple = new cc.Sprite(res.apple_png)
+        //this.addChild(hello,10);
+        var apple = new cc.Sprite(res.apple_png, cc.rect(100,0,50,50));
+        //var apple = new cc.Sprite(res.apple_png);
         apple.anchorX=0;
         apple.anchorY=0;
-        apple.setPosition(cc.p(100,200));
-        this.addChild(apple);
+        //apple.setPosition(cc.p(100,200));
+        this.addChild(apple,-100);
     }
 })
 
@@ -29,5 +30,8 @@ var TestScene = cc.Scene.extend({
         colorLayer.y = cc.winSize.height/2;
         this.addChild(colorLayer);
         this.addChild(new TestLayer());
+
+        var apple=new cc.Sprite(res.apple_png);
+        this.addChild(apple);
 }
 })

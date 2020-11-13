@@ -79,7 +79,7 @@
 cc.game.onStart = function(){
     cc.view.enableRetina(false);
     cc.view.adjustViewPort(true);
-    cc.view.setDesignResolutionSize(400,600,cc.ResolutionPolicy.SHOW_ALL);
+    cc.view.setDesignResolutionSize(600,400,cc.ResolutionPolicy.SHOW_ALL);
     cc.view.resizeWithBrowserSize(true);
     cc.director.setProjection(cc.Director.PROJECTION_2D);
     if (cc.sys.isNative) {
@@ -93,7 +93,7 @@ cc.game.onStart = function(){
     }
     //load resources
     cc.LoaderScene.preload(res, function () {
-        cc.director.runScene(new TestScene());
+        cc.director.runScene(new StartMenu());
     }, this);
 };
 
