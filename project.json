@@ -10,7 +10,8 @@
     ],
     "jsList": [
       "src/Resource.js",
-      "src/StartMenu.js"
+      "src/StartMenu.js",
+      "src/Game.js"
     ],
     "jsListOrder": []
 }
