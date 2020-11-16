@@ -7,10 +7,12 @@ colorLayer.x = cc.winSize.width/2;
 colorLayer.y = cc.winSize.height/2;
 
 var StartMenu = cc.Scene.extend({
-    gameSize:cc.p(config.game_width,config.game_height),
+    gameSize:cc.p(config.game_scene_width,config.game_scene_height),
     onEnter:function(){
         this._super();
         this.init();
+        //debug
+        this.startNewGame();
     },
 
     init:function(){

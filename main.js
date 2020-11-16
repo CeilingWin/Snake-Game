@@ -79,7 +79,7 @@
 cc.game.onStart = function(){
     cc.view.enableRetina(false);
     cc.view.adjustViewPort(true);
-    cc.view.setDesignResolutionSize(config.game_width,config.game_height,cc.ResolutionPolicy.SHOW_ALL);
+    cc.view.setDesignResolutionSize(config.game_scene_width,config.game_scene_height,cc.ResolutionPolicy.SHOW_ALL);
     cc.view.resizeWithBrowserSize(true);
     cc.director.setProjection(cc.Director.PROJECTION_2D);
     if (cc.sys.isNative) {

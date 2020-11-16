@@ -11,7 +11,9 @@
     "jsList": [
       "src/Resource.js",
       "src/StartMenu.js",
-      "src/Game.js"
+      "src/Game.js",
+      "src/GameLayer.js",
+      "src/Snake.js"
     ],
     "jsListOrder": []
 }

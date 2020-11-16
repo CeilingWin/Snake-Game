@@ -10,29 +10,20 @@ var Game = cc.Scene.extend({
     },
 
     init:function(){
-        var colorLayer = new cc.LayerColor(cc.color(0,255,32,128),cc.winSize.width,cc.winSize.height);
-        colorLayer.ignoreAnchorPointForPosition(false)
-        colorLayer.x = cc.winSize.width/2;
-        colorLayer.y = cc.winSize.height/2;
-        var snake = new Snake();
-        snake.setPosition(cc.p(100,100));
-        this.addChild(colorLayer);
-        this.addChild(snake);
+        //background
+        var bgr= new cc.LayerColor(cc.color(255,0,0,128),cc.winSize.width,cc.winSize.height);
+        bgr.ignoreAnchorPointForPosition(false);
+        bgr.x = cc.winSize.width/2;
+        bgr.y = cc.winSize.height/2;
+        this.addChild(bgr);
+
+        this.gameLayer = new GameLayer();
+        this.gameLayer.anchorX=0;
+        this.gameLayer.anchorY=0;
+        this.gameLayer.setPosition(cc.p((config.game_scene_width-config.game_layer_width)/2,
+            (config.game_scene_height-config.game_layer_height)/2));
+        this.addChild(this.gameLayer);
+
     }
 })
 
-var Snake = cc.Layer.extend({
-    ctor:function(){
-        this._super(300,200);
-        this.init();
-        return true;
-    },
-    init:function(){
-        var head = cc.Sprite("res/snake/head_right.png");
-        var body = cc.Sprite("res/snake/body_topleft.png");
-        head.setPosition(cc.p(50,50));
-        body.setPosition(cc.p(50,300));
-        this.addChild(head);
-        this.addChild(body);
-    }
-})

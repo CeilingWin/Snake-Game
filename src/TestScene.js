@@ -33,5 +33,6 @@ var TestScene = cc.Scene.extend({
 
         var apple=new cc.Sprite(res.apple_png);
         this.addChild(apple);
+        this.resize
 }
 })
