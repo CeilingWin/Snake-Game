@@ -17,7 +17,7 @@ var res = {
     tail_up:"res/snake/tail_down.png",
     tail_down:"res/snake/tail_up.png",
     tail_right:"res/snake/tail_left.png",
-    tail_left:"res/snake/tail_right",
+    tail_left:"res/snake/tail_right.png",
 };
 
 var config = {
@@ -25,7 +25,8 @@ var config = {
     game_scene_height:400,
     game_layer_width:550,
     game_layer_height:350,
-    block_size:40,
+    block_size:20,
     default_snake_length:5,
+    default_speed:1,
 };
 
