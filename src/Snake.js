@@ -10,7 +10,7 @@ var BodyType = {
     BODY_HORIZONTAL:[5,res.body_horizontal],
     BODY_BTL:[6,res.body_btl],
     BODY_BTR:[7,res.body_btr],
-    BODY_TTL:[7,res.body_ttl],
+    BODY_TTL:[8,res.body_ttl],
     BODY_TTR:[9,res.body_ttr],
     TAIL_UP:[10,res.tail_up],
     TAIL_DOWN:[11,res.tail_down],
@@ -34,25 +34,29 @@ var Snake=cc.Class.extend({
         this.speed = config.default_speed;
         this.frameCycle = 1/this.speed;
         this.deltaT = 0;
+        this.changed = true;
     },
     move:function(dt,direction){
         this.deltaT+=dt;
         if (this.deltaT>=this.frameCycle){
             this.deltaT = 0;
             if (cc.pDot(this.direction,direction)==0){
-                cc.log("di chuyen theo huong moi");
                 return this._move(direction);
             }
             else{
-                cc.log("di chuyen theo huong cu");
                 return this._move(this.direction);
             }
         }
+        return 0;
     },
     _move:function(direction){
+        this.changed = true;
+        // 1 : move succes, 2 : eat food , 3 : end game
+        var result = 1;
         // handle head
         var head = {};
         head.position = cc.pAdd(this.body[0].position,direction);
+        cc.log("Head :" + head.position.x+","+head.position.y);
         switch(direction){
             case DIRECTION.DOWN:
                 head.type = BodyType.HEAD_DOWN;
@@ -93,21 +97,73 @@ var Snake=cc.Class.extend({
                     if (direction==DIRECTION.LEFT) type = BodyType.BODY_BTL;
                     else type = BodyType.BODY_BTR;
             }
+            this.body[0].type = type;
         }
-        if (this.states!=0){
+        this.direction = direction;
 
+        // ef
+        // check end game
+        if (head.position.x<0 || head.position.x==this.gameLayer.numOfColumn ||
+        head.position.y<0 || head.position.y==this.gameLayer.numOfLine) result = 3;
+        else
+            if (this.states[head.position.y][head.position.x]==1){
+                this.bodyLength+=1;
+                result = 2;
+            }
+        for (var i = this.bodyLength-1;i>0;i--){
+            this.body[i]=this.body[i-1];
         }
+        this.body[0]=head;
+        // handle tail
+        if (this.body[this.bodyLength-1].type[0]>=10){
+            return 2;
+        }
+        this.body[this.bodyLength-1].type = this._getTypeTail(this.body[this.bodyLength-1],this.body[this.bodyLength-2]);
+        return result;
+    },
+    _getTypeTail:function(tail,lbody){
+        var type;
+        var tp = tail.position;
+        var lp = lbody.position;
+        switch(tail.type[0]){
+            case BodyType.BODY_BTL[0]:
+                if (tp.x == lp.x) type = BodyType.TAIL_DOWN;
+                else type = BodyType.TAIL_LEFT;
+                break;
+            case BodyType.BODY_BTR[0]:
+                if (tp.x == lp.x) type = BodyType.TAIL_DOWN;
+                else type = BodyType.TAIL_RIGHT;
+                break;
+            case BodyType.BODY_HORIZONTAL[0]:
+                if (tp.x < lp.x) type = BodyType.TAIL_RIGHT;
+                else type = BodyType.TAIL_LEFT;
+                break;
+            case BodyType.BODY_TTL[0]:
+                if (tp.x == lp.x) type = BodyType.TAIL_UP;
+                else type = BodyType.TAIL_LEFT;
+                break;
+            case BodyType.BODY_TTR[0]:
+                if (tp.x == lp.x) type = BodyType.TAIL_UP;
+                else type = BodyType.TAIL_RIGHT;
+                break;
+            case BodyType.BODY_VERTICAL[0]:
+                if (tp.y < lp.y) type = BodyType.TAIL_UP;
+                else type = BodyType.TAIL_DOWN;
+                break;
+        }
+        return type;
     },
     getSprites:function(){
+        if (this.changed == false) return null;
+        this.changed = false;
         var body = this.body;
-        sprites=[];
-        cc.log(body[0].position.x);
+        var sprites=[];
         for (var i =0; i<body.length;i++){
+            // init sprite
             sprites[i] = new cc.Sprite(body[i].type[1]);
             sprites[i].anchorX=0; sprites[i].anchorY=0;
             sprites[i].setScale(config.block_size/40,config.block_size/40);
             sprites[i].setPosition(this._convertToPixel(body[i].position));
-            cc.log(i+" :"+ body[i].type+","+body[i].position.x+"->"+body.length);
         }
         return sprites;
     },
@@ -116,7 +172,6 @@ var Snake=cc.Class.extend({
         this.body = [];
         var dir = cc.p(-1,0);
         var head = cc.p(Math.round(this.gameLayer.numOfColumn/2),Math.round(this.gameLayer.numOfLine/2));
-        var head = cc.p(7,0);
         this.body[0]={position:head,type:BodyType.HEAD_RIGHT};
         var i=1;
         for(;i<config.default_snake_length-1;i++){
@@ -128,6 +183,7 @@ var Snake=cc.Class.extend({
             position:cc.pAdd(this.body[i-1].position,dir),
             type:BodyType.TAIL_RIGHT
         };
+        this.bodyLength = this.body.length;
     },
     _convertToPixel:function(position){
         x = position.x*config.block_size;
