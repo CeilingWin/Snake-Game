@@ -35,12 +35,28 @@ var Snake=cc.Class.extend({
         this.frameCycle = 1/this.speed;
         this.deltaT = 0;
         this.changed = true;
+        this.toxicTime = -1;
     },
-    move:function(dt,direction){
+    speedUp:function(x){
+        // speed = speed+x
+        this.speed +=x;
+        if (this.speed>config.max_speed) this.speed = config.max_speed;
+        this.frameCycle = 1/this.speed;
+    },
+    update:function(dt,direction){
         this.deltaT+=dt;
+        if (this.toxicTime>0) this.toxicTime -= dt;
         if (this.deltaT>=this.frameCycle){
             this.deltaT = 0;
             if (cc.pDot(this.direction,direction)==0){
+                if (this.toxicTime>0){
+                    switch (direction){
+                        case DIRECTION.DOWN: direction = DIRECTION.UP; break;
+                        case DIRECTION.UP: direction = DIRECTION.DOWN; break;
+                        case DIRECTION.LEFT: direction = DIRECTION.RIGHT; break;
+                        case DIRECTION.RIGHT: direction = DIRECTION.LEFT; break;
+                    }
+                }
                 return this._move(direction);
             }
             else{
@@ -51,12 +67,13 @@ var Snake=cc.Class.extend({
     },
     _move:function(direction){
         this.changed = true;
-        // 1 : move succes, 2 : eat food , 3 : end game
+
+        // 1 : update succes, 2 : eat food , 3 : end game , 4 : special food
         var result = 1;
+
         // handle head
         var head = {};
         head.position = cc.pAdd(this.body[0].position,direction);
-        cc.log("Head :" + head.position.x+","+head.position.y);
         switch(direction){
             case DIRECTION.DOWN:
                 head.type = BodyType.HEAD_DOWN;
@@ -101,23 +118,34 @@ var Snake=cc.Class.extend({
         }
         this.direction = direction;
 
-        // ef
         // check end game
         if (head.position.x<0 || head.position.x==this.gameLayer.numOfColumn ||
         head.position.y<0 || head.position.y==this.gameLayer.numOfLine) result = 3;
-        else
+        else if (this.states[head.position.y][head.position.x]==5) result =3;
+        else{
+            // if new head.position === food.position
             if (this.states[head.position.y][head.position.x]==1){
                 this.bodyLength+=1;
+                if (this.bodyLength%5==0) this.speedUp(1);
                 result = 2;
             }
+            else{
+                if (this.states[head.position.y][head.position.x]==2){ this.toxicTime = 6; result =4}
+                if (this.states[head.position.y][head.position.x]==3) result = 4;
+                // unmark tail position
+                this.states[this.body[this.bodyLength-1].position.y][this.body[this.bodyLength-1].position.x]=0;
+            }
+            // mark state head position
+            this.states[head.position.y][head.position.x]=5;
+        }
+
+        // update body
         for (var i = this.bodyLength-1;i>0;i--){
             this.body[i]=this.body[i-1];
         }
         this.body[0]=head;
         // handle tail
-        if (this.body[this.bodyLength-1].type[0]>=10){
-            return 2;
-        }
+        if (this.body[this.bodyLength-1].type[0]>=10) return 2;
         this.body[this.bodyLength-1].type = this._getTypeTail(this.body[this.bodyLength-1],this.body[this.bodyLength-2]);
         return result;
     },
@@ -163,6 +191,7 @@ var Snake=cc.Class.extend({
             sprites[i] = new cc.Sprite(body[i].type[1]);
             sprites[i].anchorX=0; sprites[i].anchorY=0;
             sprites[i].setScale(config.block_size/40,config.block_size/40);
+            if (this.toxicTime>0) sprites[i].setColor(new cc.Color(255,0,0,50));
             sprites[i].setPosition(this._convertToPixel(body[i].position));
         }
         return sprites;
@@ -173,16 +202,19 @@ var Snake=cc.Class.extend({
         var dir = cc.p(-1,0);
         var head = cc.p(Math.round(this.gameLayer.numOfColumn/2),Math.round(this.gameLayer.numOfLine/2));
         this.body[0]={position:head,type:BodyType.HEAD_RIGHT};
+        this.states[head.y][head.x]=5;
         var i=1;
         for(;i<config.default_snake_length-1;i++){
             this.body[i]= new Object();
             this.body[i].position=cc.pAdd(this.body[i-1].position,dir);
             this.body[i].type = BodyType.BODY_HORIZONTAL;
+            this.states[this.body[i].position.y][this.body[i].position.x]=5;
         }
         this.body[i] = {
             position:cc.pAdd(this.body[i-1].position,dir),
             type:BodyType.TAIL_RIGHT
         };
+        this.states[this.body[i].position.y][this.body[i].position.x]=5;
         this.bodyLength = this.body.length;
     },
     _convertToPixel:function(position){

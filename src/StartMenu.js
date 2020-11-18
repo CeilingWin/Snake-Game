@@ -12,7 +12,7 @@ var StartMenu = cc.Scene.extend({
         this._super();
         this.init();
         //debug
-        this.startNewGame();
+        //this.startNewGame();
     },
 
     init:function(){
@@ -54,7 +54,7 @@ var StartMenu = cc.Scene.extend({
     },
 
     showHigthScore:function(){
-        cc.log("high score");
+        cc.log("high lb_score");
     },
 
 

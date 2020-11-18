@@ -3,6 +3,8 @@
 var res = {
     apple_png:"res/snake/apple.png",
     bgr_start_menu_png:"res/bgr_menu.png",
+    bgr_game:"res/bgr.jpg",
+    mushroom:"res/snake/shroom.png",
 
     head_up:"res/snake/head_up.png",
     head_right:"res/snake/head_right.png",
@@ -19,15 +21,14 @@ var res = {
     tail_right:"res/snake/tail_right.png",
     tail_left:"res/snake/tail_left.png",
 };
-var sprite = new cc.Sprite(res.apple_png);
 var config = {
     game_scene_width:600,
     game_scene_height:400,
     game_layer_width:560,
     game_layer_height:360,
-    block_size:20,
-    sprite_size:sprite.getContentSize().width,
+    block_size:40,
     default_snake_length:5,
     default_speed:3,
+    max_speed:100,
 };
 
