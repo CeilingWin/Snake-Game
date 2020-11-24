@@ -9,9 +9,7 @@ var GameLayer = cc.Layer.extend({
     ctor:function(){
         this._super();
         this.sprites = [];
-        // debug
-        //cc.log("sprite size :"+res.sprite_size);
-        var bgr= new cc.LayerColor(cc.color(255,222,173),config.game_layer_width,config.game_layer_height);
+        var bgr= new cc.LayerColor(cc.color(0,194,0),config.game_layer_width,config.game_layer_height);
         bgr.ignoreAnchorPointForPosition(false);
         bgr.x = config.game_layer_width/2;
         bgr.y = config.game_layer_height/2;
@@ -45,13 +43,17 @@ var GameLayer = cc.Layer.extend({
         // special f
         this.specialFood ={sprite: null, position:cc.p(0,0)};
 
-        // lb_score label
-        this.lb_score = ccui.Text("Score:   0","Arial",20);
-        this.lb_score.anchorX=0; this.lb_score.anchorY=0;
-        this.lb_score.setPosition(config.game_layer_width-this.lb_score.getBoundingBox().width,config.game_layer_height);
-        this.lb_score.setColor(new cc.Color(0,0,0));
-        this.addChild(this.lb_score,100);
-        this.highScore = 0;
+        // lb_game_over label
+        this.lb_game_over = ccui.Text("Score:   0","Arial",20);
+        this.lb_game_over.anchorX=0; this.lb_game_over.anchorY=0;
+        this.lb_game_over.setPosition(config.game_layer_width-this.lb_game_over.getBoundingBox().width,config.game_layer_height);
+        this.lb_game_over.setColor(new cc.Color(0,0,0));
+        this.addChild(this.lb_game_over,100);
+        this.highScore = config.high_score;
+
+        // scr
+        this.score_up = ccui.Text("","Arial",20);
+        this.addChild(this.score_up);
     },
     newGame:function(){
         this.states=[];
@@ -67,7 +69,7 @@ var GameLayer = cc.Layer.extend({
 
         this.direction = DIRECTION.RIGHT; // right key
         this.score = 0;
-        this.lb_score.setText("Score:0");
+        this.lb_game_over.setText("Score:0");
         this.endGame = false;
         this.specialFoodCycle = 5;
         this.hsf = false;
@@ -106,9 +108,10 @@ var GameLayer = cc.Layer.extend({
     },
     update:function(dt){
         if (!this.endGame) {
-            if (this.specialFoodCycle>0) this.specialFoodCycle-=dt;
+            if (this.specialFoodCycle>0 && this.hsf == true){ this.onCallBack();this.specialFoodCycle-=dt;}
             else if (this.hsf == true){
                 this.removeChild(this.specialFood.sprite);
+                this.removeChild(this.remainingTime);
                 this.specialFood.sprite = null;
                 this.states[this.specialFood.position.y][this.specialFood.position.x]=0;
                 this.hsf = false;
@@ -117,21 +120,44 @@ var GameLayer = cc.Layer.extend({
             this.drawSnake();
             if (state == 3) {
                 this.endGame = true;
-                if (this.score>this.highScore) this.highScore = this.score;
+                if (this.score>this.highScore){ this.highScore = this.score; config.high_score=this.highScore;}
                 this.resultLayer = new ResultLayer(this,this.score,this.highScore);
                 this.addChild(this.resultLayer);
             }
             else if (state == 2) {
-                // update lb_score
+                // update lb_game_over
                 this.score+=10;
-                this.lb_score.setText("Score "+this.score);
+                this.lb_game_over.setText("Score "+this.score);
+                // display score
+                if (this.score_up != null) this.removeChild(this.score_up);
+                this.score_up = ccui.Text("","Arial",20);
+                this.addChild(this.score_up,1000);
+                this.score_up.stopAllActions();
+                this.score_up.setText("+10");
+                this.score_up.setColor(new cc.Color(255,255,255));
+                this.score_up.setPosition(cc.p(this.snake._convertToPixel(this.snake.body[0].position)));
+                this.score_up.runAction(cc.fadeOut(1.5));
                 this.generateFood(FoodType.NORMAL);
             }
-            else if (state == 4){
-                this.score+=100;
-                this.lb_score.setText("Score "+this.score);
+            else if (state == 4 || state == 6){
+
+                if (state ==4){
+                    this.score+=100;
+                    this.lb_game_over.setText("Score "+this.score);
+                    // display score
+                    if (this.score_up != null) this.removeChild(this.score_up);
+                    this.score_up = ccui.Text("","Arial",25);
+                    this.addChild(this.score_up,1000);
+                    this.score_up.stopAllActions();
+                    this.score_up.setText("+100");
+                    this.score_up.setColor(new cc.Color(255,0,255));
+                    this.score_up.setPosition(cc.p(this.snake._convertToPixel(this.snake.body[0].position)));
+                    this.score_up.runAction(cc.fadeOut(1.5));
+                }
+
                 this.hsf = false;
                 this.removeChild(this.specialFood.sprite);
+                this.removeChild(this.remainingTime);
                 this.specialFood.sprite = null;
             }
             if (Math.random()>0.99 && this.hsf == false){
@@ -160,13 +186,25 @@ var GameLayer = cc.Layer.extend({
                     this.specialFood.position=cc.p(x,y);
                     this.specialFood.sprite.setPosition(cc.p(this.snake._convertToPixel(cc.p(x,y))));
                     this.addChild(this.specialFood.sprite);
-                    this.states[y][x]=Math.round(Math.random()+2);
-                    cc.log("spffff: "+this.states[y][x]);
+                    var random = Math.round(Math.random()*100);
+                    if (random%2==0)
+                        this.states[y][x]=3;
+                    else this.states[y][x]=2;
+
                     this.hsf = true;
                     this.specialFoodCycle= 10;
+                    this.remainingTime = ccui.Text(this.specialFoodCycle,"Arial",15);
+                    this.remainingTime.setPosition(this.snake._convertToPixel(cc.p(x,y)));
+                    this.addChild(this.remainingTime);
                 }
                 break;
             }
+        }
+    },
+    onCallBack:function(){
+        cc.log("call back");
+        if (this.specialFoodCycle>0) {
+            this.remainingTime.setText(Math.round(this.specialFoodCycle));
         }
     },
     _clear:function(){
@@ -182,10 +220,10 @@ var ResultLayer = cc.LayerColor.extend({
         if (score == highScore)
             this.setColor(new cc.Color(0,255,0,100));
         // score lb
-        this.lb_score = ccui.Text("Score "+score,"Arial",20);
-        this.lb_score.setPosition(cc.p(0,100));
-        this.lb_score.setColor(new cc.Color(255,0,0,120));
-        this.lb_score.setPosition(cc.p(config.game_layer_width/2,200));
+        this.lb_game_over = ccui.Text("Score "+score,"Arial",20);
+        this.lb_game_over.setPosition(cc.p(0,100));
+        this.lb_game_over.setColor(new cc.Color(255,0,0,120));
+        this.lb_game_over.setPosition(cc.p(config.game_layer_width/2,200));
         // high score lb
         this.lb_high_score = ccui.Text("High Score "+highScore,"Arial",20);
         this.lb_high_score.setPosition(cc.p(0,50));
@@ -202,14 +240,68 @@ var ResultLayer = cc.LayerColor.extend({
             function(){
                 gameLayer.replay();
             }
+        );
+
+        // exit button
+        this.btn_exit = ccui.Button.create();
+        this.btn_exit.titleText = "Exit";
+        this.btn_exit.titleFontSize=20;
+        this.btn_exit.setColor(new cc.Color(255,0,0,120));
+        this.btn_exit.setPosition(cc.p(config.game_layer_width/2,70));
+        this.btn_exit.addClickEventListener(
+            function(){
+                cc.director.runScene(new StartMenu());
+            }
         )
-        this.addChild(this.lb_score);
+        this.addChild(this.lb_game_over);
         this.addChild(this.lb_high_score);
         this.addChild(this.btn_replay);
+        this.addChild(this.btn_exit);
     },
     setScore:function(score){
-        this.lb_score.setText("Score "+score);
+        this.lb_game_over.setText("Score "+score);
         if (score>this.highScore) this.highScore=score;
         this.lb_high_score.setText("High Score "+this.highScore);
+    }
+})
+
+var ResultLayer2 = cc.Layer.extend({
+    ctor:function(gameLayer,score,highScore){
+        this._super();
+        this.anchorX=0.5;
+        this.anchorY=0.5;
+        //this.x = config.game_layer_width/2;
+        //this.y = config.game_layer_height/2;
+        this.setPosition(300,500);
+        // bgr
+        var bgr = cc.Sprite("res/result.png");
+        //bgr.attr({
+        //    anchorX:0,
+        //    anchorY:0,
+        //    x:0,
+        //    y:0,
+        //})
+        this.addChild(bgr);
+
+        // result
+        this.lb_game_over = ccui.Text("GameOver","Arial",30);
+        this.lb_game_over.setPosition(cc.p(0,80));
+        this.lb_game_over.setColor(new cc.Color(255,49,102,255));
+        this.addChild(this.lb_game_over);
+
+        this.lb_score = ccui.Text("Score "+score,"Arial",20);
+        this.lb_score.setPosition(cc.p(0,40));
+        this.lb_score.setColor(new cc.Color(255,49,102,100));
+        this.addChild(this.lb_score);
+
+        // high score lb
+        this.lb_high_score = ccui.Text("High Score "+highScore,"Arial",20);
+        this.lb_high_score.setPosition(cc.p(0,0));
+        this.lb_high_score.setColor(new cc.Color(255,0,0,120));
+        this.addChild(this.lb_high_score);
+        this.move();
+    },
+    move:function(){
+        this.runAction(new cc.MoveTo(1,cc.p(config.game_layer_width/2,config.game_layer_height/2)));
     }
 })

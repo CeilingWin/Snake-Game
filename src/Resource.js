@@ -1,11 +1,11 @@
 
 
 var res = {
+    bgr_start_menu_png:"res/start_menu/background.png",
+    new_game_png:"res/start_menu/ic_play.png",
+    setting_png:"res/start_menu/ic_settings.png",
     apple_png:"res/snake/apple.png",
-    bgr_start_menu_png:"res/bgr_menu.png",
-    bgr_game:"res/bgr.jpg",
     mushroom:"res/snake/shroom.png",
-
     head_up:"res/snake/head_up.png",
     head_right:"res/snake/head_right.png",
     head_down:"res/snake/head_down.png",
@@ -24,11 +24,13 @@ var res = {
 var config = {
     game_scene_width:600,
     game_scene_height:400,
-    game_layer_width:560,
+    game_layer_width:570,
     game_layer_height:360,
-    block_size:40,
-    default_snake_length:5,
+    block_size:30,
+    default_snake_length:9,
     default_speed:3,
-    max_speed:100,
+    default_level:0, //easy
+    max_speed:20,
+    high_score:0
 };
 

@@ -32,10 +32,12 @@ var Snake=cc.Class.extend({
         // config
         this.direction = DIRECTION.RIGHT;
         this.speed = config.default_speed;
+        cc.log("speed:"+this.speed);
         this.frameCycle = 1/this.speed;
         this.deltaT = 0;
         this.changed = true;
         this.toxicTime = -1;
+        this.spritePool = new SpritePool();
     },
     speedUp:function(x){
         // speed = speed+x
@@ -45,6 +47,7 @@ var Snake=cc.Class.extend({
     },
     update:function(dt,direction){
         this.deltaT+=dt;
+        //this.display
         if (this.toxicTime>0) this.toxicTime -= dt;
         if (this.deltaT>=this.frameCycle){
             this.deltaT = 0;
@@ -130,7 +133,7 @@ var Snake=cc.Class.extend({
                 result = 2;
             }
             else{
-                if (this.states[head.position.y][head.position.x]==2){ this.toxicTime = 6; result =4}
+                if (this.states[head.position.y][head.position.x]==2){ this.toxicTime = 6; result =6}
                 if (this.states[head.position.y][head.position.x]==3) result = 4;
                 // unmark tail position
                 this.states[this.body[this.bodyLength-1].position.y][this.body[this.bodyLength-1].position.x]=0;
@@ -186,14 +189,22 @@ var Snake=cc.Class.extend({
         this.changed = false;
         var body = this.body;
         var sprites=[];
-        for (var i =0; i<body.length;i++){
-            // init sprite
-            sprites[i] = new cc.Sprite(body[i].type[1]);
-            sprites[i].anchorX=0; sprites[i].anchorY=0;
-            sprites[i].setScale(config.block_size/40,config.block_size/40);
-            if (this.toxicTime>0) sprites[i].setColor(new cc.Color(255,0,0,50));
+        //for (var i =0; i<body.length;i++){
+        //    // init sprite
+        //    sprites[i] = new cc.Sprite(body[i].type[1]);
+        //    sprites[i].anchorX=0; sprites[i].anchorY=0;
+        //    sprites[i].setScale(config.block_size/40,config.block_size/40);
+        //    if (this.toxicTime>0) sprites[i].setColor(new cc.Color(255,0,0,50));
+        //    sprites[i].setPosition(this._convertToPixel(body[i].position));
+        //}
+        this.spritePool.reset();
+        for (var i = 0; i<body.length;i++){
+            sprites[i] = this.spritePool.getSprite(body[i].type[0]);
+            if (this.toxicTime>0) sprites[i].setColor(new cc.Color(255,0,0,9));
+            else sprites[i].setColor(new cc.Color(255,255,255,0));
             sprites[i].setPosition(this._convertToPixel(body[i].position));
         }
+
         return sprites;
     },
     initBody:function(){
